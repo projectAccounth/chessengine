@@ -154,3 +154,45 @@ double evaluateKingSafety(Chess& game) {
 
 	return safetyScore;
 }
+
+auto getWhiteMaterialScore = [](Chess& game) {
+	auto board = game.board();
+	int materialScore = 0;
+	for (auto& row : board) {
+		for (auto& p : row) {
+			if (!p) continue;
+			if (std::get<color>(p.value()) == WHITE)
+				materialScore += getPieceValue(std::get<pieceSymbol>(p.value()));
+		}
+	}
+	return materialScore;
+};
+
+auto getBlackMaterialScore = [](Chess& game) {
+	auto board = game.board();
+	int materialScore = 0;
+	for (auto& row : board) {
+		for (auto& p : row) {
+			if (!p) continue;
+			if (std::get<color>(p.value()) == BLACK)
+				materialScore += getPieceValue(std::get<pieceSymbol>(p.value()));
+		}
+	}
+	return materialScore;
+};
+
+double evaluateBoard(Chess& game) {
+	bool isWhite = game.turn() == WHITE;
+	auto board = game.board();
+
+	auto blackMaterialScore = getBlackMaterialScore(game);
+	auto whiteMaterialScore = getWhiteMaterialScore(game);
+
+	auto materialScore = isWhite ?
+		whiteMaterialScore - blackMaterialScore :
+		blackMaterialScore - whiteMaterialScore;
+	auto mobilityScore = game.moves().size();
+	auto kingSafetyScore = evaluateKingSafety(game);
+
+	return materialScore + positionalScore + 0.1 * mobilityScore + 0.5 * kingSafetyScore;
+}
